@@ -1,0 +1,43 @@
+{
+  "WFWorkflowName": "Boticon壁紙を変更",
+  "WFWorkflowClientVersion": "5037.109",
+  "WFWorkflowMinimumClientVersion": 900,
+  "WFWorkflowMinimumClientVersionString": "900",
+  "WFWorkflowIcon": {
+    "WFWorkflowIconStartColor": 4282601983,
+    "WFWorkflowIconGlyphNumber": 59511
+  },
+  "WFWorkflowTypes": [],
+  "WFWorkflowInputContentItemClasses": [],
+  "WFWorkflowImportQuestions": [],
+  "WFWorkflowActions": [
+    {
+      "WFWorkflowActionIdentifier": "com.example.boticon.NextWallpaperIntent",
+      "WFWorkflowActionParameters": {
+        "AppIntentDescriptor": {
+          "BundleIdentifier": "com.example.boticon",
+          "Name": "Boticon壁紙",
+          "AppIntentIdentifier": "NextWallpaperIntent"
+        },
+        "UUID": "9F76F47B-6DA6-4C00-B3B8-E8AECB0B4F51"
+      }
+    },
+    {
+      "WFWorkflowActionIdentifier": "is.workflow.actions.wallpaper.set",
+      "WFWorkflowActionParameters": {
+        "WFInput": {
+          "Value": {
+            "OutputUUID": "9F76F47B-6DA6-4C00-B3B8-E8AECB0B4F51",
+            "Type": "ActionOutput",
+            "OutputName": "次のBoticon壁紙を取得"
+          },
+          "WFSerializationType": "WFTextTokenAttachment"
+        },
+        "UUID": "9D0FC84A-D69A-4587-8542-C26D98AE8A38",
+        "WFWallpaperShowPreview": false,
+        "WFWallpaperSmartCrop": false,
+        "WFWallpaperLegibilityBlur": false
+      }
+    }
+  ]
+}
