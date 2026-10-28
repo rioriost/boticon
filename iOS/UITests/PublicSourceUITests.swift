@@ -18,6 +18,7 @@ final class PublicSourceUITests: XCTestCase {
         app.buttons["閉じる"].tap()
         app.tabBars.buttons["このアプリ"].tap()
         XCTAssertTrue(app.staticTexts["sourceOnlyDisclosure"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "privacyPolicyLink").firstMatch.exists)
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.lifetime = .keepAlways
         add(attachment)

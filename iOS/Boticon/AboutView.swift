@@ -9,6 +9,11 @@ struct AboutView: View {
                         .accessibilityIdentifier("sourceOnlyDisclosure")
                     Link("ソースコードとMITライセンス", destination: URL(string: "https://github.com/rioriost/boticon")!)
                 }
+                Section("プライバシー") {
+                    Text("本アプリは個人情報を収集しません。画像と設定は端末内で扱います。")
+                    Link("プライバシーポリシー", destination: URL(string: "https://github.com/rioriost/boticon/blob/main/PRIVACY.md")!)
+                        .accessibilityIdentifier("privacyPolicyLink")
+                }
                 Section("画像と生成AIについて") {
                     Text("生成AIで制作した画像を追加する場合は、生成AIを使った非公式の画像であることを、利用者が分かる形で明示してください。元のデザインと異なる部分が含まれる場合があります。")
                 }

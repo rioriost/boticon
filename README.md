@@ -102,6 +102,12 @@ xcodebuild -project BoticonWallpaper.xcodeproj -scheme BoticonWallpaper \
 
 公開検査はGitのステージ内容と追跡ファイルを確認し、許可リスト外の画像・署名ファイル・制作データ・認証情報・空でないカタログを拒否します。元の制作環境の履歴を継承せず、新しい履歴から公開しています。
 
+## プライバシー
+
+本アプリは個人情報を収集しません。画像・設定の端末内での扱い、任意の写真保存、ショートカット連携については[プライバシーポリシー](PRIVACY.md)をご覧ください。
+
+公開URL：<https://github.com/rioriost/boticon/blob/main/PRIVACY.md>
+
 ## ライセンスと素材の権利
 
 コードと文書は[MIT License](LICENSE)です。別途用意した画像、キャラクター、名称、ロゴ、データセットなどの権利を許諾するものではありません。

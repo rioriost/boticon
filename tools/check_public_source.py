@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = "iOS/Boticon/Resources/catalog.json"
 EMPTY_CATALOG = {"schemaVersion": 1, "source": "", "capturedAt": "", "members": []}
-TOP_FILES = {"LICENSE", "README.md", "AGENTS.md", "Package.swift", "project.yml", ".gitignore", ".gitattributes"}
+TOP_FILES = {"LICENSE", "README.md", "PRIVACY.md", "AGENTS.md", "Package.swift", "project.yml", ".gitignore", ".gitattributes"}
 
 
 def validate(path, content):
