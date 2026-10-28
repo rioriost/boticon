@@ -1,8 +1,8 @@
 # プライバシーポリシー
 
-対象アプリ：Boticon壁紙（Boticon）  
-運営者：Rio Fujita（GitHub: rioriost）  
-制定・最終更新日：2026年10月28日
+- 対象アプリ：Boticon壁紙（Boticon）
+- 運営者：Rio Fujita（GitHub: rioriost）
+- 制定・最終更新日：2026年10月28日
 
 ## 個人情報の収集について
 
