@@ -4,6 +4,7 @@ import json
 import struct
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 import zlib
 from pathlib import Path
@@ -68,6 +69,12 @@ class WallpaperPackBuilderTests(unittest.TestCase):
         (self.root / 'wallpapers/star.png').write_bytes(image)
         with self.assertRaises(ValueError):
             pack.prepare(self.recipe, self.root)
+
+    def test_total_size_is_rejected_before_loading_payload(self):
+        with mock.patch.object(pack, 'MAX_ARCHIVE', len(png()) - 1):
+            with mock.patch.object(Path, 'read_bytes', side_effect=AssertionError('must reject before reading')):
+                with self.assertRaises(ValueError):
+                    pack.prepare(self.recipe, self.root)
 
     def test_symlink_outside_input_cannot_be_packaged(self):
         image = self.root / 'wallpapers/star.png'

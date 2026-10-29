@@ -161,7 +161,7 @@ final class WallpaperPackTests: XCTestCase {
 
     func testInvalidURLAndCredentialsNeverStartDownload() throws {
         for url in ["http://example.com/a.zip", "file:///tmp/a.zip", "https://user:pass@example.com/a.zip",
-                    "https://localhost/a.zip", "https://127.0.0.1/a.zip", "https://[::1]/a.zip",
+                    "https://localhost/a.zip", "https://localhost./a.zip", "https://example.local./a.zip", "https://127.0.0.1/a.zip", "https://[::1]/a.zip",
                     "https://example.local/a.zip", "https://example.com:8443/a.zip", "https://example.com/a.zip#secret"] {
             XCTAssertThrowsError(try PackURL.validated(url), url)
         }

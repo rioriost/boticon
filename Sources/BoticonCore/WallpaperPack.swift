@@ -137,7 +137,11 @@ public enum PackURL {
 
     public static func validated(_ value: String) throws -> URL {
         guard let url = URL(string: value.trimmingCharacters(in: .whitespacesAndNewlines)), isHTTPS(url),
-              let host = url.host?.lowercased(), host.contains("."),
+              let rawHost = url.host?.lowercased() else {
+            throw PackError.invalid("認証情報を含まない、公開配布元のHTTPS URLを入力してください。")
+        }
+        let host = rawHost.trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        guard host.contains("."),
               !host.hasSuffix(".local"), !host.hasSuffix(".localhost"),
               host != "localhost", !host.contains(":"),
               !host.allSatisfy({ $0.isNumber || $0 == "." }) else {
@@ -146,5 +150,7 @@ public enum PackURL {
         return url
     }
 
-    public static func origin(_ url: URL) -> String { "https://" + (url.host?.lowercased() ?? "") }
+    public static func origin(_ url: URL) -> String {
+        "https://" + (url.host?.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: ".")) ?? "")
+    }
 }

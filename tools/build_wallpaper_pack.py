@@ -63,6 +63,7 @@ def prepare(recipe, image_root):
     wallpapers = result.get('wallpapers')
     require(isinstance(wallpapers, list) and 1 <= len(wallpapers) <= 500, 'Expected 1..500 wallpapers')
     ids, files = set(), {}
+    payload_total = 0
     root = image_root.resolve()
     for item in wallpapers:
         identity = item.get('id')
@@ -71,7 +72,10 @@ def prepare(recipe, image_root):
         require(item.get('file') in (f'wallpapers/{identity}.png', f'wallpapers/{identity}.jpg'), 'Invalid file path')
         path = root / item['file']
         require(not path.is_symlink() and path.resolve().is_relative_to(root), 'Image escapes input folder')
-        require(0 < path.stat().st_size <= MAX_IMAGE, 'Image exceeds 20MiB')
+        size = path.stat().st_size
+        require(0 < size <= MAX_IMAGE, 'Image exceeds 20MiB')
+        payload_total += size
+        require(payload_total <= MAX_ARCHIVE, 'Archive exceeds 256MiB; split the pack')
         data = path.read_bytes()
         media_type, width, height = image_info(data)
         require((media_type == 'image/png') == path.name.endswith('.png'), 'Extension does not match image type')
@@ -110,7 +114,11 @@ def build(recipe_path, image_root, output):
         except BaseException:
             output.unlink(missing_ok=True)
             raise
-    digest = hashlib.sha256(output.read_bytes()).hexdigest()
+    digest_state = hashlib.sha256()
+    with output.open('rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest_state.update(chunk)
+    digest = digest_state.hexdigest()
     return digest
 
 
