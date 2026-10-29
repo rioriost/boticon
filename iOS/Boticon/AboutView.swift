@@ -4,13 +4,13 @@ struct AboutView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("ソースコードの公開版です") {
-                    Text("この公開版には、元絵、生成画像、VTuberの名簿やプロフィールを含めていません。利用する画像とカタログは、ご自身で用意してください。ソースコードはMITライセンスで公開しています。")
+                Section("壁紙パックを追加して使います") {
+                    Text("このアプリには壁紙やVTuberの名簿を同梱していません。利用する壁紙は、配布元のURLからパックを取得して追加します。パックの作成者・利用条件・画像ごとの出典と生成AIの使用表示は、配布者が記載した情報です。")
                         .accessibilityIdentifier("sourceOnlyDisclosure")
                     Link("ソースコードとMITライセンス", destination: URL(string: "https://github.com/rioriost/boticon")!)
                 }
                 Section("プライバシー") {
-                    Text("本アプリは個人情報を収集しません。画像と設定は端末内で扱います。")
+                    Text("本アプリは個人情報を収集しません。画像と設定は端末内で扱います。パック取得時は、指定した配布先にIPアドレスなどの通信情報が伝わります。")
                     Link("プライバシーポリシー", destination: URL(string: "https://github.com/rioriost/boticon/blob/main/PRIVACY.md")!)
                         .accessibilityIdentifier("privacyPolicyLink")
                 }

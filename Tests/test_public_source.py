@@ -20,6 +20,15 @@ class PublicSourceTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate(path, b"excluded")
 
+    def test_pack_spec_and_privacy_manifest_are_source_documents(self):
+        validate("docs/wallpaper-pack-v1.md", b"# Specification")
+        validate("docs/wallpaper-pack-v1.schema.json", b"{}")
+        validate("iOS/Boticon/PrivacyInfo.xcprivacy", b"<plist/>")
+        with self.assertRaises(ValueError):
+            validate("docs/private-pack.json", b"{}")
+        with self.assertRaises(ValueError):
+            validate("examples/sample.bwp.zip", b"archive")
+
     def test_binary_content_and_signing_settings_are_rejected(self):
         with self.assertRaises(ValueError):
             validate("Sources/BoticonCore/Unexpected.swift", b"text\x00binary")

@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct MembersView: View {
     @EnvironmentObject private var library: WallpaperLibrary
     @Environment(\.dynamicTypeSize) private var typeSize
+    @State private var showingPacks = false
     @State private var query = ""
     @State private var organization = "all"
     @State private var selectedOnly = false
@@ -31,10 +32,14 @@ struct MembersView: View {
                     .pickerStyle(.menu)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("agencyPicker")
-                    if library.members.isEmpty {
-                        ContentUnavailableView("壁紙は同梱していません", systemImage: "photo",
-                            description: Text("この公開版はソースコードのみです。利用する画像とカタログをご自身で追加してください。"))
-                            .accessibilityIdentifier("emptyPublicCatalog")
+                    if library.available.isEmpty {
+                        ContentUnavailableView {
+                            Label("壁紙パックを追加", systemImage: "photo.badge.plus")
+                        } description: {
+                            Text("壁紙は同梱していません。配布元のURLからパックを追加してください。")
+                        } actions: {
+                            Button("URLから追加") { showingPacks = true }.buttonStyle(.borderedProminent)
+                        }
                     } else if filtered.isEmpty {
                         ContentUnavailableView("該当なし", systemImage: "magnifyingglass")
                     } else {
@@ -50,7 +55,12 @@ struct MembersView: View {
             .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("壁紙")
             .searchable(text: $query, prompt: "検索")
+            .sheet(isPresented: $showingPacks) { PacksView().environmentObject(library) }
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showingPacks = true } label: { Label("壁紙パック", systemImage: "plus") }
+                        .accessibilityIdentifier("wallpaperPacks")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Picker("並び順", selection: $sortOrder) {
@@ -150,6 +160,7 @@ struct MemberDetailView: View {
     let member: Member
     @State private var photo: PhotosPickerItem?
     @State private var importingFile = false
+    @State private var showingInfo = false
     @State private var busy = false
     private var selected: Bool { library.state.selectedIDs.contains(member.id) }
 
@@ -171,6 +182,9 @@ struct MemberDetailView: View {
                     Button { importingFile = true } label: {
                         Label("ファイルから読み込む", systemImage: "folder")
                     }.disabled(busy)
+                    if library.packInfo(for: member.id) != nil {
+                        Button("画像の情報", systemImage: "info.circle") { showingInfo = true }
+                    }
                     if let url = member.officialProfileURL {
                         Link(destination: url) { Label("公式サイト", systemImage: "arrow.up.right.square") }
                     }
@@ -191,6 +205,7 @@ struct MemberDetailView: View {
             .padding(.horizontal, 24).padding(.vertical, 12)
             .background(.bar)
         }
+        .sheet(isPresented: $showingInfo) { PackArtworkInfoView(id: member.id).environmentObject(library) }
         .fileImporter(isPresented: $importingFile, allowedContentTypes: [.image]) { result in
             do {
                 let url = try result.get()

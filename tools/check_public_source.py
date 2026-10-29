@@ -15,7 +15,8 @@ def validate(path, content):
     item = PurePosixPath(path)
     allowed = path in TOP_FILES or path == CATALOG or path in {
         "iOS/Boticon/Resources/Wallpapers/.gitkeep", "iOS/Boticon/Resources/Shortcuts/.gitkeep",
-        "iOS/Info.plist", "iOS/UITests/Info.plist", "shortcuts/BoticonWallpaper.template.json"
+        "iOS/Info.plist", "iOS/UITests/Info.plist", "shortcuts/BoticonWallpaper.template.json",
+        "iOS/Boticon/PrivacyInfo.xcprivacy", "docs/wallpaper-pack-v1.md", "docs/wallpaper-pack-v1.schema.json"
     } or any(path.startswith(prefix) and item.suffix == suffix for prefix, suffix in [
         ("Sources/BoticonCore/", ".swift"), ("iOS/Boticon/", ".swift"),
         ("iOS/UITests/", ".swift"), ("Tests/BoticonCoreTests/", ".swift"),

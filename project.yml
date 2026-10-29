@@ -16,11 +16,6 @@ targets:
       - path: iOS/Boticon
         excludes: [Resources]
       - path: Sources/BoticonCore
-      - path: iOS/Boticon/Resources/catalog.json
-        buildPhase: resources
-      - path: iOS/Boticon/Resources/Wallpapers
-        type: folder
-        buildPhase: resources
       - path: iOS/Boticon/Resources/Shortcuts
         type: folder
         buildPhase: resources
@@ -35,6 +30,7 @@ targets:
             CFBundleURLSchemes: [boticon]
         UILaunchScreen: {}
         NSPhotoLibraryAddUsageDescription: 選択した壁紙を写真に保存して、写真シャッフルで使います。
+        ITSAppUsesNonExemptEncryption: false
         UIApplicationSupportsIndirectInputEvents: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     settings:
@@ -42,7 +38,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.boticon
         TARGETED_DEVICE_FAMILY: "1"
         MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        CURRENT_PROJECT_VERSION: "3"
         SWIFT_STRICT_CONCURRENCY: complete
   BoticonWallpaperUITests:
     type: bundle.ui-testing

@@ -2,9 +2,11 @@
 
 iPhone向けの壁紙選択・切り替えアプリのソースコードです。SwiftUIとApp Intentsを使用し、選択した画像を「ショートカット」へ渡します。
 
-**元絵、生成画像、VTuberの名簿・プロフィール・ID、制作履歴、画像入りスクリーンショットは含めていません。** カタログは空なので、そのまま起動すると壁紙なしの画面になります。利用する画像とカタログは、ご自身で用意してください。
+**元絵、生成画像、VTuberの名簿・プロフィール・ID、制作履歴、画像入りスクリーンショットは含めていません。** アプリは空の状態で起動し、配布元のHTTPS URLから壁紙パックを取り込みます。アプリの再ビルドは不要です。
 
 ## 機能
+
+- URLからZIP＋JSONの壁紙パックを検証して追加・更新・削除。追加前に作成者・利用条件を表示。
 
 - 所属別の絞り込み、名前検索、デビューの新旧・名前順、選択中のみ表示。
 - 選択した画像の順次・ランダム取得と、直前の画像の連続選択回避。
@@ -34,30 +36,19 @@ xcodebuild -project BoticonWallpaper.xcodeproj -scheme BoticonWallpaper \
 
 実機ではXcodeのSigning & Capabilitiesでご自身のTeamを指定してください。既定のBundle Identifierは`com.example.boticon`、応答用URLスキームは`boticon`です。識別子を変更する場合は、`project.yml`、ショートカットのJSON・生成ツール、UIテストの識別子も合わせて変更します。応答スキームの変更時は`WallpaperShortcut.swift`とそのテストも更新してください。
 
-## 自分の画像を使う
+## 壁紙パックを使う・配布する
 
-公開リポジトリを更新するコピーと、素材を入れる私的なコピーを分けてください。
+アプリの「壁紙」画面左上の＋ → 配布元のHTTPS URLを入力 → 「パックを確認」 → 利用条件を確認 → 「このパックを追加」でカタログに追加します。配布元が別経路で示すSHA-256があれば入力して照合できます。追加した壁紙は所属・名前で検索し、選択してショートカットに渡せます。パック単位で削除でき、新版は同じ配布元・同じID・大きいrevisionで取り込みます。
 
-1. 私的なコピーの`iOS/Boticon/Resources/catalog.json`の`members`へ、ご自身のデータを追加する。
-2. `iOS/Boticon/Resources/Wallpapers/<id>.png`へ画像を配置する。
-3. `xcodegen generate`を実行してビルドし直す。
+[BWP v1の公開仕様](docs/wallpaper-pack-v1.md)と[JSON Schema](docs/wallpaper-pack-v1.schema.json)を公開しています。標準ZIPのstored形式（無圧縮）とUTF-8 JSONを使用します。PNG/JPEG、画像ごとのSHA-256・バイト数・画素数、出典、生成AI使用の有無をマニフェストへ記載します。容量制限、不正パス・リンク・実行ファイルの拒否、検証後の一括追加に対応しています。チェックサムは破損を検出しますが、配布元の身元や画像の権利を保証しません。
 
-ルート項目は`schemaVersion`（1）、`source`、`capturedAt`、`members`です。各メンバーの項目は次のとおりです。サンプルの人物や実データは同梱していません。
+パック作成はPython標準ライブラリだけで実行できます。利用許諾を確認した画像とレシピを、公開ソースとは別に用意してください。
 
-| 項目 | 内容 |
-| --- | --- |
-| `id` | 重複しない小文字英数字・ハイフン。PNGのファイル名に使用 |
-| `name` | 表示名 |
-| `aliases` | 検索用の別名の配列 |
-| `organization` | 所属の表示名。`independent`は「個人勢」と表示 |
-| `branch` | 検索用の分類 |
-| `membershipStatus` | 既存形式との互換用の記録。画像の表示制限には使用しない |
-| `officialProfileURL` | 任意のプロフィールURL。省略可能 |
-| `debutDate` | 任意の`YYYY-MM-DD`。不明な場合は省略 |
+```sh
+python3 tools/build_wallpaper_pack.py recipe.json input output.bwp.zip
+```
 
-同じ場所へ`<id>.json`を追加し、`anchor`を`lowerLeft`または`lowerRight`に指定できます。省略時は左下です。ファイルのないメンバーは一覧へ表示しません。既存メンバーについては、詳細画面から自分の写真やファイルを読み込むこともできます。
-
-画像はGitの対象外です。ただし空のカタログは追跡済みなので、私的な内容に変更したカタログを誤ってコミットしないでください。公開前の検査ツールは、空でないカタログを拒否します。
+入力レシピとディレクトリ構成は仕様書を参照してください。既存の出力は上書きしません。生成したアーカイブや実データはこのソースリポジトリへコミットしないでください。アプリには壁紙・名簿を一切組み込まず、空の`catalog.json`は従来の公開検査用に保持しています。
 
 ## 壁紙変更と自動切り替え
 
@@ -91,7 +82,7 @@ python3 -m unittest discover -s Tests -p 'test_*.py' -v
 python3 tools/check_public_source.py
 ```
 
-Swiftでは選択・並び替え・保存・壁紙の配置・URL応答を、Pythonではショートカットの接続と設定を検証します。空の公開版の起動と説明画面は、`PublicSourceUITests`で確認します。
+Swiftでは不正ZIP・チェックサム・画像制限・パック更新と保存・通信応答・選択・並び替え・壁紙の配置・URL応答を、Pythonではパック作成とショートカットを検証します。空の公開版の起動と説明画面は、`PublicSourceUITests`で確認します。
 
 ```sh
 xcodebuild -project BoticonWallpaper.xcodeproj -scheme BoticonWallpaper \

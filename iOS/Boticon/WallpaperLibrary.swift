@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Photos
 import UniformTypeIdentifiers
+import ImageIO
 
 @MainActor
 final class WallpaperLibrary: ObservableObject {
@@ -12,17 +13,16 @@ final class WallpaperLibrary: ObservableObject {
     @Published var message: String?
     private var startupError: Error?
     private let directory: URL
+    private var packStore: PackStore?
     private let renderedCache = NSCache<NSString, NSData>()
 
     init() {
         directory = URL.applicationSupportDirectory.appendingPathComponent("Boticon", isDirectory: true)
         do {
-            guard let url = Bundle.main.url(forResource: "catalog", withExtension: "json") else {
-                throw CatalogError.invalidCatalog
-            }
-            catalog = try JSONDecoder().decode(Catalog.self, from: Data(contentsOf: url)).validated()
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
                 attributes: [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication])
+            packStore = try PackStore(root: directory.appendingPathComponent("Packs", isDirectory: true))
+            refreshCatalog()
             let stateURL = directory.appendingPathComponent("selection.json")
             if FileManager.default.fileExists(atPath: stateURL.path) {
                 do { state = try JSONDecoder().decode(SelectionState.self, from: Data(contentsOf: stateURL)) }
@@ -42,16 +42,57 @@ final class WallpaperLibrary: ObservableObject {
         guard Catalog.safeID(id) else { return nil }
         let local = directory.appendingPathComponent("\(id).png")
         if FileManager.default.fileExists(atPath: local.path) { return local }
-        return Bundle.main.url(forResource: id, withExtension: "png", subdirectory: "Wallpapers")
+        return packStore?.imageURL(for: id)
     }
 
     func anchor(for id: String) -> WallpaperAnchor {
         if let override = state.anchors[id] { return override }
-        if let url = Bundle.main.url(forResource: id, withExtension: "json", subdirectory: "Wallpapers"),
-           let data = try? Data(contentsOf: url),
-           let record = try? JSONDecoder().decode(PlacementMetadata.self, from: data),
-           let anchor = record.anchor { return anchor }
+        if let (_, item) = packStore?.wallpaper(for: id) { return item.anchor }
         return .lowerLeft
+    }
+
+    var packs: [InstalledPack] { packStore?.packs ?? [] }
+
+    func packInfo(for id: String) -> (InstalledPack, PackWallpaper)? { packStore?.wallpaper(for: id) }
+
+    func validateInstall(_ pack: VerifiedPack, source: URL) throws {
+        try checkReady()
+        guard let packStore else { throw CatalogError.corruptState }
+        try packStore.checkInstall(pack, source: source)
+    }
+
+    func install(_ pack: VerifiedPack, source: URL) throws {
+        try validateInstall(pack, source: source)
+        try packStore?.install(pack, source: source)
+        refreshCatalog()
+        pruneSelection()
+    }
+
+    func removePack(_ id: String) throws {
+        try checkReady()
+        let removedIDs = Set(packStore?.packs.first { $0.id == id }?.manifest.members.map(\.id) ?? [])
+        try packStore?.remove(id: id)
+        for id in removedIDs {
+            try? FileManager.default.removeItem(at: directory.appendingPathComponent("\(id).png"))
+        }
+        refreshCatalog()
+        pruneSelection()
+    }
+
+    private func refreshCatalog() {
+        catalog = Catalog(schemaVersion: 1, source: "installed-packs", capturedAt: "",
+                          members: packStore?.packs.flatMap { $0.manifest.members } ?? [])
+        revision += 1
+        renderedCache.removeAllObjects()
+    }
+
+    private func pruneSelection() {
+        let ids = Set(members.map(\.id))
+        update {
+            $0.selectedIDs.formIntersection(ids)
+            $0.anchors = $0.anchors.filter { ids.contains($0.key) }
+            if let last = $0.lastID, !ids.contains(last) { $0.lastID = nil }
+        }
     }
 
     func wallpaperImage(for id: String) -> UIImage? {
@@ -93,9 +134,17 @@ final class WallpaperLibrary: ObservableObject {
     func importImage(_ data: Data, for member: Member) throws {
         try checkReady()
         guard members.contains(where: { $0.id == member.id }), Catalog.safeID(member.id),
-              data.count <= 40_000_000, let image = UIImage(data: data) else {
+              data.count <= 40_000_000 else {
             throw ImportError.invalidImage
         }
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+              let width = properties[kCGImagePropertyPixelWidth] as? Int,
+              let height = properties[kCGImagePropertyPixelHeight] as? Int,
+              width > 0, height > 0, width <= 8192, height <= 8192, width * height <= 24_000_000 else {
+            throw ImportError.invalidImage
+        }
+        guard let image = UIImage(data: data) else { throw ImportError.invalidImage }
         let png = WallpaperRenderer.normalizedPNG(image)
         let url = directory.appendingPathComponent("\(member.id).png")
         try png.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])

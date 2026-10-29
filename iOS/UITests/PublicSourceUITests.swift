@@ -8,7 +8,7 @@ final class PublicSourceUITests: XCTestCase {
         app.launchArguments = ["-AppleLanguages", "(ja)", "-AppleLocale", "ja_JP"]
         app.launch()
         XCTAssertTrue(app.buttons["galleryFilters"].waitForExistence(timeout: 30))
-        XCTAssertTrue(app.staticTexts["壁紙は同梱していません"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "壁紙は同梱していません")).firstMatch.exists)
         XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'select-'")).count, 0)
         app.tabBars.buttons["選択中"].tap()
         XCTAssertFalse(app.buttons["nextWallpaperPreview"].isEnabled)
